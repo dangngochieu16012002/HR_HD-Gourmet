@@ -1,0 +1,11 @@
+INSERT INTO `member_accounts` (`member_id`, `email`, `password`, `last_login`, `created_at`, `updated_at`)
+VALUES
+(1, 'demo@mail.com', MD5('password123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(4, 'qwerty@mail.com', MD5('qwerty123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(5, 'demo@test.com', MD5('demo123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(6, 'membera@test.com', MD5('membera123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(7, 'memberb@mail.com', MD5('memberb123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(9, 'khanh123@gmail.com', MD5('khanh123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(10, 'hieu456@gmailcom', MD5('hieu456'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(11, 'duong123@gmail.com', MD5('duong123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(12, 'hieu123@gmail.com', MD5('hieu123'), NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
