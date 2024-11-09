@@ -116,6 +116,19 @@ function getLogoUrl()
           </li>
 
           <li class="nav-item">
+            <a href="duyet_yc_nghi.php" class="nav-link <?php echo ($current_page == 'duyet_yc_nghi.php') ? 'active' : ''; ?>">
+              <i class="nav-icon fas fa-users-cog"></i>
+              <p>Duyệt phép</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="duyet_yc_nghi.php" class="nav-link <?php echo ($current_page == 'ot.php') ? 'active' : ''; ?>">
+              <i class="nav-icon fas fa-users-cog"></i>
+              <p>Tăng ca </p>
+            </a>
+          </li>
+
+          <li class="nav-item">
             <a href="chamcong.php" class="nav-link <?php echo ($current_page == 'chamcong.php') ? 'active' : ''; ?>">
               <i class="nav-icon fas fa-users-cog"></i>
               <p>Dữ liệu chấm công</p>

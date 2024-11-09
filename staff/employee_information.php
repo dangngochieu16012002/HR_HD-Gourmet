@@ -111,7 +111,7 @@ include('includes_staff/header_staff.php');
                         if (!empty($memberData['contract'])) {
                             $contractPath = '../uploads/member_photos/' . htmlspecialchars($memberData['contract']);
                             if (file_exists($contractPath)) {
-                                echo '<a href="' . $contractPath . '" target="_blank" class="text-info">Xem</a>';
+                                echo '<a href="../uploads/contracts/' . $contractPath . '" target="_blank" class="text-info">Xem</a>';
                             } else {
                                 echo '<span class="text-danger">Không tìm thấy hợp đồng</span>';
                             }

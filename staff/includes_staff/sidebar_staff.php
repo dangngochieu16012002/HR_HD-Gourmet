@@ -104,6 +104,13 @@ if ($countResult && $countResult->num_rows > 0) {
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="phep.php" class="nav-link <?php echo ($current_page == 'phep.php') ? 'active' : ''; ?>">
+                        <i class="nav-icon fas fa-clock"></i>
+                        <p>Tạo phép & tăng ca</p>
+                    </a>
+                </li>
+
                 <!-- Thông tin cá nhân -->
                 <li class="nav-item">
                     <a href="employee_information.php" class="nav-link <?php echo ($current_page == 'employee_information.php') ? 'active' : ''; ?>">

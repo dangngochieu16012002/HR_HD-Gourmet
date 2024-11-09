@@ -15,6 +15,8 @@
                     $pageTitle = 'Bảng Điều Khiển';
                 } elseif (strpos($_SERVER['REQUEST_URI'], 'lichlamnv.php') !== false) {
                     $pageTitle = 'Lịch - Chấm Công';
+                } elseif (strpos($_SERVER['REQUEST_URI'], 'phep.php') !== false) {
+                    $pageTitle = 'Tạo yêu cầu nghỉ phép & tăng ca';
                 } elseif (strpos($_SERVER['REQUEST_URI'], 'lich.php') !== false) {
                     $pageTitle = 'Quản Lý Lịch Làm';    
                 } elseif (strpos($_SERVER['REQUEST_URI'], 'add_members.php') !== false) {

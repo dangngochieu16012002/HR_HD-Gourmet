@@ -72,29 +72,22 @@ while ($schedule = $schedules->fetch_assoc()) {
             }
 
             // Kiểm tra các điều kiện không hợp lệ
-            if (empty($in_time) && empty($out_time)) {
-                $errors[] = "$fullname chưa chấm công vào và ra trong ngày $date.";
-            } elseif (empty($in_time)) {
-                $errors[] = "$fullname chưa chấm công vào trong ngày $date.";
-            } elseif (empty($out_time)) {
-                $errors[] = "$fullname chưa chấm công ra trong ngày $date.";
-            } else {
-                // Kiểm tra trễ vào ca
-                if ($shift_start_time && $in_time > date('H:i:s', strtotime($shift_start_time) + 15 * 60)) {
-                    $errors[] = "$fullname chấm công trễ hơn 15 phút so với giờ vào ca trong ngày $date.";
-                }
-                
-                // Kiểm tra ra sớm hơn giờ ra
-                if ($shift_end_time && $out_time < $shift_end_time) {
-                    $errors[] = "$fullname về sớm hơn giờ ra ca trong ngày $date.";
-                }
-
-                // Kiểm tra giờ chấm công so với lịch làm việc
-                if ($shift !== 'OFF' && $shift !== 'CD' && $shift !== 'AL') {
-                    if ($in_time < $shift_start_time) {
-                        $errors[] = "$fullname vào ca sớm hơn giờ quy định trong ngày $date.";
-                    } elseif ($in_time > $shift_end_time) {
-                        $errors[] = "$fullname vào ca muộn hơn giờ quy định trong ngày $date.";
+            if (!in_array($shift, ['OFF', 'AL', 'CD'])) { // Bỏ qua các ngày OFF, AL, CD
+                if (empty($in_time) && empty($out_time)) {
+                    $errors[] = "$fullname chưa chấm công vào và ra trong ngày $date.";
+                } elseif (empty($in_time)) {
+                    $errors[] = "$fullname chưa chấm công vào trong ngày $date.";
+                } elseif (empty($out_time)) {
+                    $errors[] = "$fullname chưa chấm công ra trong ngày $date.";
+                } else {
+                    // Kiểm tra trễ vào ca
+                    if ($shift_start_time && $in_time > date('H:i:s', strtotime($shift_start_time) + 15 * 60)) {
+                        $errors[] = "$fullname chấm công trễ hơn 15 phút so với giờ vào ca trong ngày $date.";
+                    }
+                    
+                    // Kiểm tra ra sớm hơn giờ ra
+                    if ($shift_end_time && $out_time < $shift_end_time) {
+                        $errors[] = "$fullname về sớm hơn giờ ra ca trong ngày $date.";
                     }
                 }
             }
@@ -109,7 +102,25 @@ while ($schedule = $schedules->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Chấm Công</title>
-    <link rel="stylesheet" type="text/css" href="includes/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .error { color: red; }
+        .error-cell { background-color: #ffe6e6; }
+    </style>
+    <script>
+        function showEditModal(fullname, date, inTime, outTime, shift) {
+            document.getElementById('editFullname').value = fullname;
+            document.getElementById('editDate').value = date;
+            document.getElementById('editInTime').value = inTime;
+            document.getElementById('editOutTime').value = outTime;
+            document.getElementById('editShift').value = shift;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+    </script>
 </head>
 <?php include('includes/header.php'); ?>
 
@@ -122,128 +133,108 @@ while ($schedule = $schedules->fetch_assoc()) {
         <?php include('includes/pagetitle.php'); ?>
 
         <section class="content">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="container">
-                            <h2>Lịch Chấm Công Nhân Viên</h2>
-                            <table class="attendance-table">
-                                <tr>
-                                    <th>Thành viên</th>
-                                    <th>Chức vụ</th>
-                                    <th>Phòng</th>
-                                    <?php foreach ($days as $day) { ?>
-                                        <th><?php echo ucfirst($day); ?></th>
-                                    <?php } ?>
-                                </tr>
-                                <?php 
-                                // Reset cursor of schedules
-                                $schedules->data_seek(0);
-                                
-                                while ($schedule = $schedules->fetch_assoc()) { ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($schedule['fullname']); ?></td>
-                                        <td><?php echo htmlspecialchars($schedule['occupation']); ?></td>
-                                        <td><?php echo htmlspecialchars($schedule['type']); ?></td> <!-- Hiển thị cột Phòng -->
-                                        <?php foreach ($days as $day) {
-                                            $date = date('Y-m-d', strtotime("{$day} this week"));
-                                            $attendance_status = isset($attendance_data[$schedule['fullname']][$date]) ? $attendance_data[$schedule['fullname']][$date] : [];
-
-                                            $in_time = '';
-                                            $out_time = '';
-
-                                            // Lấy giờ vào và giờ ra
-                                            foreach ($attendance_status as $status) {
-                                                if ($status['type'] == 'in') {
-                                                    if (empty($in_time)) {
-                                                        $in_time = $status['time']; // Lấy giờ vào lần đầu tiên
-                                                    }
-                                                } elseif ($status['type'] == 'out') {
-                                                    $out_time = $status['time']; // Cập nhật giờ ra lần cuối cùng
-                                                }
-                                            }
-
-                                            // Lấy lịch làm cho ngày hiện tại
-                                            $shift = $schedule["{$day}_shift"];
-                                            $display = '';
-
-                                            // Kiểm tra và hiển thị trạng thái
-                                            if ($shift == 'OFF' || $shift == 'CD' || $shift == 'AL') {
-                                                $display = htmlspecialchars($shift);
-                                            } elseif ($in_time || $out_time) {
-                                                $display = "in: " . htmlspecialchars($in_time) . " - out: " . htmlspecialchars($out_time);
-                                            } else {
-                                                $display = "<span class='error'>chưa chấm công</span>";
-                                            }
-
-                                            echo "<td class='" . ($shift == 'OFF' ? 'schedule-off' : ($shift == 'CD' ? 'schedule-cd' : ($shift == 'AL' ? 'schedule-al' : ''))) . "'>$display</td>";
-                                        } ?>
-                                    </tr>
-                                <?php } ?>
-                            </table>
-
-                            <?php if (!empty($errors)) { ?>
-                                <div class="error-list">
-                                    <h3>Các lỗi chấm công:</h3>
-                                    <ul>
-                                        <?php foreach ($errors as $error) { ?>
-                                            <li><?php echo htmlspecialchars($error); ?></li>
-                                        <?php } ?>
-                                    </ul>
-                                </div>
-                            <?php } else { ?>
-                                <div class="success-message">
-                                    <p>Không có lỗi chấm công nào.</p>
-                                </div>
+            <div class="container mx-auto p-4 bg-white rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-6">Lịch Chấm Công Nhân Viên</h2>
+                <table class="table-auto w-full border-collapse border border-gray-200">
+                    <thead>
+                        <tr class="bg-blue-600 text-white">
+                            <th class="px-4 py-2">Thành viên</th>
+                            <th class="px-4 py-2">Chức vụ</th>
+                            <th class="px-4 py-2">Phòng</th>
+                            <?php foreach ($days as $day) { ?>
+                                <th class="px-4 py-2"><?php echo ucfirst($day); ?></th>
                             <?php } ?>
-                        </div>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $schedules->data_seek(0);
+                        while ($schedule = $schedules->fetch_assoc()) { ?>
+                            <tr class="border-b">
+                                <td class="px-4 py-2"><?php echo htmlspecialchars($schedule['fullname']); ?></td>
+                                <td class="px-4 py-2"><?php echo htmlspecialchars($schedule['occupation']); ?></td>
+                                <td class="px-4 py-2"><?php echo htmlspecialchars($schedule['type']); ?></td>
+                                <?php foreach ($days as $day) {
+                                    $date = date('Y-m-d', strtotime("{$day} this week"));
+                                    $attendance_status = isset($attendance_data[$schedule['fullname']][$date]) ? $attendance_data[$schedule['fullname']][$date] : [];
+                                    $in_time = '';
+                                    $out_time = '';
+                                    
+                                    foreach ($attendance_status as $status) {
+                                        if ($status['type'] == 'in' && empty($in_time)) {
+                                            $in_time = $status['time'];
+                                        } elseif ($status['type'] == 'out') {
+                                            $out_time = $status['time'];
+                                        }
+                                    }
+
+                                    $shift = $schedule["{$day}_shift"];
+                                    $display = $shift;
+
+                                    if (!in_array($shift, ['OFF', 'CD', 'AL'])) {
+                                        if ($in_time || $out_time) {
+                                            $display = "in: " . htmlspecialchars($in_time) . " - out: " . htmlspecialchars($out_time);
+                                        } else {
+                                            $display = "<span class='error'>chưa chấm công</span>";
+                                        }
+                                    }
+                                    echo "<td class='px-4 py-2 " . (empty($in_time) && empty($out_time) && !in_array($shift, ['OFF', 'CD', 'AL']) ? "error-cell" : "") . "'>$display <button onclick='showEditModal(\"{$schedule['fullname']}\", \"$date\", \"$in_time\", \"$out_time\", \"$shift\")' class='text-blue-500 hover:text-blue-700'>&#9998;</button></td>";
+                                } ?>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+
+                <?php if (!empty($errors)) { ?>
+                    <div class="mt-4 p-4 bg-red-100 text-red-800 rounded">
+                        <h3 class="font-semibold mb-2">Các lỗi chấm công:</h3>
+                        <ul class="list-disc ml-5">
+                            <?php foreach ($errors as $error) { ?>
+                                <li><?php echo htmlspecialchars($error); ?></li>
+                            <?php } ?>
+                        </ul>
                     </div>
-                </div>
+                <?php } else { ?>
+                    <div class="mt-4 p-4 bg-green-100 text-green-800 rounded">
+                        <p>Không có lỗi chấm công nào.</p>
+                    </div>
+                <?php } ?>
             </div>
         </section>
     </div>
-    <footer class="main-footer">
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+            <button onclick="closeEditModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+            <h3 class="text-xl font-bold mb-4 text-center text-blue-600">Chỉnh Sửa Chấm Công</h3>
+            <form action="update_attendance.php" method="post">
+                <input type="hidden" id="editFullname" name="fullname">
+                <input type="hidden" id="editDate" name="date">
+                <div class="mb-4">
+                    <label for="editShift" class="block text-gray-700 font-semibold">Ca Làm</label>
+                    <input type="text" id="editShift" name="shift" class="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="editInTime" class="block text-gray-700 font-semibold">Giờ vào</label>
+                    <input type="time" id="editInTime" name="in_time" class="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="editOutTime" class="block text-gray-700 font-semibold">Giờ ra</label>
+                    <input type="time" id="editOutTime" name="out_time" class="w-full border rounded px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="text-right">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer text-center mt-4 py-4">
         <strong>&copy; <?php echo date('Y'); ?> HD Gourmet</strong> - Bản Quyền Thuộc Về.
     </footer>
 </div>
 
-<style>
-table.attendance-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-table.attendance-table th, table.attendance-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
-}
-
-table.attendance-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.error {
-    color: red;
-}
-
-.error-list {
-    margin-top: 20px;
-    color: red;
-}
-
-.error-list ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.error-list li {
-    margin: 5px 0;
-}
-</style>
-
-<?php include('includes/footer.php'); ?>
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
 </body>
 </html>

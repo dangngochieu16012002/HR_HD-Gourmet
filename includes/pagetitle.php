@@ -11,8 +11,11 @@
                     $pageTitle = 'Quản Lý Phòng';
                 } elseif (strpos($_SERVER['REQUEST_URI'], 'lich.php') !== false) {
                     $pageTitle = 'Quản Lý Lịch Làm';    
-                }
-                elseif (strpos($_SERVER['REQUEST_URI'], 'chamcong.php') !== false) {
+                }elseif (strpos($_SERVER['REQUEST_URI'], 'duyet_yc_nghi.php') !== false) {
+                  $pageTitle = 'Duyệt phép';    
+                }elseif (strpos($_SERVER['REQUEST_URI'], 'ot.php') !== false) {
+                  $pageTitle = 'Tăng ca';    
+                }elseif (strpos($_SERVER['REQUEST_URI'], 'chamcong.php') !== false) {
                   $pageTitle = 'Dữ liệu chấm công';    
                 } elseif (strpos($_SERVER['REQUEST_URI'], 'renew.php') !== false) {
                     $pageTitle = 'Gia Hạn Hợp Đồng ';
